@@ -79,35 +79,33 @@ async function findExistingProduct(nicheName) {
 }
 
 async function createProduct({ name, description, summary, price, pdfPath, thumbnailPath }) {
-  const form = new FormData();
-  form.append('access_token', GUMROAD_ACCESS_TOKEN);
-  form.append('name', name);
-  form.append('description', description);
-  form.append('summary', summary);
-  form.append('price', price);
-  form.append('url', name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-
-  // Attach PDF file
-  if (fs.existsSync(pdfPath)) {
-    form.append('file', fs.createReadStream(pdfPath));
-  }
-
-  // Attach thumbnail as preview image
-  if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-    form.append('preview', fs.createReadStream(thumbnailPath));
-    logger.info('[Gumroad] Attaching thumbnail image');
-  }
-
   try {
-    const res = await axios.post(`${GUMROAD_API}/products`, form, {
-      headers: form.getHeaders()
+    // Phase 1: Create product metadata via JSON
+    // Note: Gumroad POST /products is actually simpler than we thought
+    const res = await axios.post(`${GUMROAD_API}/products`, {
+      access_token: GUMROAD_ACCESS_TOKEN,
+      name,
+      description,
+      summary,
+      price: parseInt(price),
+      url: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now()
     });
+
     const data = res.data;
     if (data.success) {
-      logger.info(`[Gumroad] ✓ Product created: ${data.product.short_url}`);
-      return data.product;
+      logger.info(`[Gumroad] Product record created: ${data.product.id}`);
+      
+      // Phase 2: Upload files via PUT multipart
+      return await updateProduct(data.product.id, {
+        name,
+        description,
+        summary,
+        price,
+        pdfPath,
+        thumbnailPath
+      });
     } else {
-      logger.error(`[Gumroad] Create failed: ${JSON.stringify(data)}`);
+      logger.error(`[Gumroad] Create metadata failed: ${JSON.stringify(data)}`);
       return null;
     }
   } catch (err) {
