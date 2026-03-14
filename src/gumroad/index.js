@@ -3,6 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 import dayjs from 'dayjs';
+import axios from 'axios';
+import FormData from 'form-data';
 import { getNiche, getOutputDir, GUMROAD_ACCESS_TOKEN } from '../utils/config.js';
 import logger from '../utils/logger.js';
 import minimist from 'minimist';
@@ -61,10 +63,10 @@ export async function publishToGumroad(niche, slug, pdfPath, trends, marketingCo
 
 async function findExistingProduct(nicheName) {
   try {
-    const res = await fetch(`${GUMROAD_API}/products`, {
+    const res = await axios.get(`${GUMROAD_API}/products`, {
       headers: { Authorization: `Bearer ${GUMROAD_ACCESS_TOKEN}` }
     });
-    const data = await res.json();
+    const data = res.data;
     if (!data.success) return null;
 
     return data.products?.find(p => 
@@ -87,23 +89,20 @@ async function createProduct({ name, description, summary, price, pdfPath, thumb
 
   // Attach PDF file
   if (fs.existsSync(pdfPath)) {
-    const pdfBlob = new Blob([fs.readFileSync(pdfPath)], { type: 'application/pdf' });
-    form.append('file', pdfBlob, 'report.pdf');
+    form.append('file', fs.createReadStream(pdfPath));
   }
 
   // Attach thumbnail as preview image
   if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-    const imgBlob = new Blob([fs.readFileSync(thumbnailPath)], { type: 'image/png' });
-    form.append('preview', imgBlob, 'thumbnail.png');
+    form.append('preview', fs.createReadStream(thumbnailPath));
     logger.info('[Gumroad] Attaching thumbnail image');
   }
 
   try {
-    const res = await fetch(`${GUMROAD_API}/products`, {
-      method: 'POST',
-      body: form
+    const res = await axios.post(`${GUMROAD_API}/products`, form, {
+      headers: form.getHeaders()
     });
-    const data = await res.json();
+    const data = res.data;
     if (data.success) {
       logger.info(`[Gumroad] ✓ Product created: ${data.product.short_url}`);
       return data.product;
@@ -112,7 +111,7 @@ async function createProduct({ name, description, summary, price, pdfPath, thumb
       return null;
     }
   } catch (err) {
-    logger.error(`[Gumroad] Create error: ${err.message}`);
+    logger.error(`[Gumroad] Create error: ${err.response?.data?.message || err.message}`);
     return null;
   }
 }
@@ -126,23 +125,19 @@ async function updateProduct(productId, { name, description, summary, price, pdf
   form.append('price', price);
 
   if (fs.existsSync(pdfPath)) {
-    const pdfBlob = new Blob([fs.readFileSync(pdfPath)], { type: 'application/pdf' });
-    form.append('file', pdfBlob, 'report.pdf');
+    form.append('file', fs.createReadStream(pdfPath));
   }
 
-  // Attach thumbnail as preview image
   if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-    const imgBlob = new Blob([fs.readFileSync(thumbnailPath)], { type: 'image/png' });
-    form.append('preview', imgBlob, 'thumbnail.png');
+    form.append('preview', fs.createReadStream(thumbnailPath));
     logger.info('[Gumroad] Attaching thumbnail image');
   }
 
   try {
-    const res = await fetch(`${GUMROAD_API}/products/${productId}`, {
-      method: 'PUT',
-      body: form
+    const res = await axios.put(`${GUMROAD_API}/products/${productId}`, form, {
+      headers: form.getHeaders()
     });
-    const data = await res.json();
+    const data = res.data;
     if (data.success) {
       logger.info(`[Gumroad] ✓ Product updated: ${data.product.short_url}`);
       return data.product;
@@ -151,7 +146,7 @@ async function updateProduct(productId, { name, description, summary, price, pdf
       return null;
     }
   } catch (err) {
-    logger.error(`[Gumroad] Update error: ${err.message}`);
+    logger.error(`[Gumroad] Update error: ${err.response?.data?.message || err.message}`);
     return null;
   }
 }
