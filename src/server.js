@@ -34,7 +34,7 @@ app.get('/api/status', (req, res) => {
 });
 
 app.get('/api/logs', (req, res) => {
-  const logFile = path.join(__dirname, '../../logs/engine.log');
+  const logFile = path.join(__dirname, '../logs/engine.log');
   const lines = readLastLines(logFile, 50);
   res.json({ logs: lines });
 });
