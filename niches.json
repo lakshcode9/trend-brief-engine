@@ -1,0 +1,37 @@
+[
+  {
+    "name": "AI in healthcare",
+    "slug": "ai-in-healthcare",
+    "price": 2900,
+    "active": true,
+    "subreddits": ["healthtech", "MachineLearning", "ArtificialIntelligence", "digitalhealth"]
+  },
+  {
+    "name": "Climate tech startups",
+    "slug": "climate-tech-startups",
+    "price": 2900,
+    "active": true,
+    "subreddits": ["climatetech", "CleanEnergy", "greentech", "startups"]
+  },
+  {
+    "name": "DeFi and crypto regulation",
+    "slug": "defi-and-crypto-regulation",
+    "price": 2900,
+    "active": true,
+    "subreddits": ["defi", "CryptoMarkets", "ethereum", "CryptoRegulation"]
+  },
+  {
+    "name": "Creator economy tools",
+    "slug": "creator-economy-tools",
+    "price": 2900,
+    "active": true,
+    "subreddits": ["CreatorEconomy", "NewTubers", "Entrepreneur", "SideProject"]
+  },
+  {
+    "name": "Supply chain automation",
+    "slug": "supply-chain-automation",
+    "price": 2900,
+    "active": true,
+    "subreddits": ["supplychain", "logistics", "automation", "Manufacturing"]
+  }
+]

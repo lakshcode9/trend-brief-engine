@@ -1,0 +1,27 @@
+{
+  "name": "trend-brief-engine",
+  "version": "1.0.0",
+  "description": "BriefEdge — Autonomous niche intelligence report engine",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js",
+    "dev": "node run.js --niche \"AI in healthcare\"",
+    "scheduler": "node src/scheduler.js",
+    "test:trends": "node src/trends/index.js --niche \"AI in healthcare\"",
+    "test:research": "node src/research/index.js --niche \"AI in healthcare\"",
+    "test:pdf": "node src/report/index.js --niche \"AI in healthcare\"",
+    "test:gumroad": "node src/gumroad/index.js --niche \"AI in healthcare\""
+  },
+  "dependencies": {
+    "apify-client": "^2.9.0",
+    "puppeteer": "^22.0.0",
+    "node-cron": "^3.0.3",
+    "dayjs": "^1.11.10",
+    "dotenv": "^16.4.1",
+    "slugify": "^1.6.6",
+    "minimist": "^1.2.8",
+    "winston": "^3.11.0",
+    "node-fetch": "^3.3.2"
+  },
+  "type": "module"
+}
