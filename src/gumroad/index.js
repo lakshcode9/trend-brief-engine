@@ -111,7 +111,8 @@ async function createProduct({ name, description, summary, price, pdfPath, thumb
       return null;
     }
   } catch (err) {
-    logger.error(`[Gumroad] Create error: ${err.response?.data?.message || err.message}`);
+    const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    logger.error(`[Gumroad] Create error: ${errorMsg}`);
     return null;
   }
 }
@@ -146,7 +147,8 @@ async function updateProduct(productId, { name, description, summary, price, pdf
       return null;
     }
   } catch (err) {
-    logger.error(`[Gumroad] Update error: ${err.response?.data?.message || err.message}`);
+    const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    logger.error(`[Gumroad] Update error: ${errorMsg}`);
     return null;
   }
 }
