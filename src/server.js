@@ -50,12 +50,17 @@ app.post('/api/run', (req, res) => {
 
   const args = niche === 'all' ? ['run.js', '--all'] : ['run.js', '--niche', niche];
   
-  activeRun = spawn('node', args, {
+  activeRun = spawn(process.execPath, args, {
     cwd: path.join(__dirname, '../'),
     stdio: 'ignore' // It logs to engine.log anyway via winston
   });
 
   activeRun.on('exit', () => {
+    activeRun = null;
+  });
+
+  activeRun.on('error', (err) => {
+    console.error('[Dashboard] Failed to start run:', err);
     activeRun = null;
   });
 
