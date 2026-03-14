@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BriefEdge // Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;800&family=Fira+Code:wght@400;500&family=Syne:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <div class="bg-noise"></div>
+  <div class="bg-grid"></div>
+
+  <main class="container">
+    <header class="header stagger-1">
+      <div class="brand">
+        <h1>BRIEFEDGE</h1>
+        <span class="badge">AUTONOMOUS ENGINE</span>
+      </div>
+      <div class="controls">
+        <button id="btn-run-all" class="btn-primary" onclick="triggerRun('all')">
+          <span class="btn-text">INITIALIZE SEQUENCE [ALL]</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="dashboard stagger-2">
+      <section class="log-section">
+        <div class="section-head">
+          <div class="glow-orb"></div>
+          <h2>LIVE TELEMETRY</h2>
+          <span class="status-indicator">POLLING...</span>
+        </div>
+        <div class="terminal" id="terminal">
+          <pre id="log-output">Booting sequence initiated...</pre>
+        </div>
+      </section>
+
+      <section class="niche-section">
+        <h2>ACTIVE NICHES</h2>
+        <div id="niche-grid" class="niche-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const logOutput = document.getElementById('log-output');
+    const nicheGrid = document.getElementById('niche-grid');
+    const statusIndicator = document.querySelector('.status-indicator');
+    
+    // Poll logs
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        if (data.logs) {
+          logOutput.textContent = data.logs.join('\n');
+          // Auto-scroll to bottom
+          const terminal = document.getElementById('terminal');
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+        statusIndicator.textContent = "CONNECTED";
+        statusIndicator.style.color = "var(--accent)";
+      } catch (e) {
+        statusIndicator.textContent = "OFFLINE";
+        statusIndicator.style.color = "var(--error)";
+      }
+    }
+
+    // Load Niches
+    async function loadNiches() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        
+        nicheGrid.innerHTML = data.niches.map((n, i) => `
+          <div class="niche-card" style="animation-delay: ${0.4 + (i * 0.1)}s">
+            <div class="niche-header">
+              <span class="niche-slug">${n.slug}</span>
+              <span class="status-dot ${n.active ? 'active' : 'inactive'}"></span>
+            </div>
+            <h3>${n.name}</h3>
+            <button class="btn-secondary" onclick="triggerRun('${n.slug}')">Run Target</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error("Failed to load niches", e);
+      }
+    }
+
+    async function triggerRun(niche) {
+      if (!confirm(`Initialize generation protocol for: ${niche.toUpperCase()}?`)) return;
+      try {
+        await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ niche })
+        });
+        alert(`Sequence initiated. Check telemetry.`);
+      } catch (e) {
+        alert("Failed to initialize sequence.");
+      }
+    }
+
+    // Init
+    loadNiches();
+    fetchLogs();
+    setInterval(fetchLogs, 2000);
+  </script>
+</body>
+</html>
